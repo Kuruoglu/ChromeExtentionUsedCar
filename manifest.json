@@ -1,0 +1,32 @@
+{
+  "manifest_version": 3,
+  "name": "Inventory Highlighter",
+  "version": "1.0.0",
+  "description": "Dims and labels sold vehicles on dealership inventory pages by syncing with a Google Sheet.",
+  "permissions": [
+    "storage",
+    "alarms"
+  ],
+  "host_permissions": [
+    "https://docs.google.com/*",
+    "https://docs.googleusercontent.com/*",
+    "https://sheets.googleapis.com/*",
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "src/background.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["src/content.js"],
+      "css": ["src/styles.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "options_page": "src/options/index.html",
+  "action": {
+    "default_popup": "src/popup/popup.html"
+  }
+}

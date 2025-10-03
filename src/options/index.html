@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Inventory Highlighter Options</title>
+    <link rel="stylesheet" href="options.css" />
+  </head>
+  <body>
+    <main>
+      <h1>Inventory Highlighter Options</h1>
+      <form id="options-form">
+        <section>
+          <h2>Data Source</h2>
+          <label>
+            <input type="radio" name="dataSource" value="csv" />
+            Published CSV URL
+          </label>
+          <label class="indent">
+            CSV URL
+            <input type="url" name="csvUrl" placeholder="https://docs.google.com/spreadsheets/d/.../pub?output=csv" />
+          </label>
+          <label>
+            <input type="radio" name="dataSource" value="sheets" />
+            Google Sheets API
+          </label>
+          <div class="indent grid">
+            <label>
+              Spreadsheet ID
+              <input type="text" name="spreadsheetId" />
+            </label>
+            <label>
+              Range
+              <input type="text" name="range" placeholder="Sheet1!A1:C500" />
+            </label>
+            <label>
+              API Key
+              <input type="text" name="apiKey" />
+            </label>
+          </div>
+        </section>
+
+        <section>
+          <h2>Column Names</h2>
+          <div class="grid">
+            <label>
+              VIN column
+              <input type="text" name="vinColumn" />
+            </label>
+            <label>
+              Stock column
+              <input type="text" name="stockColumn" />
+            </label>
+            <label>
+              Status column
+              <input type="text" name="statusColumn" />
+            </label>
+          </div>
+          <label>
+            Sold status values (comma-separated)
+            <input type="text" name="soldValues" placeholder="Sold,SOLD,Delivered" />
+          </label>
+        </section>
+
+        <section>
+          <h2>Page Selectors</h2>
+          <label>
+            Card selector
+            <input type="text" name="cardSelector" />
+          </label>
+          <div class="grid">
+            <label>
+              VIN selector
+              <input type="text" name="vinSelector" />
+            </label>
+            <label>
+              Stock selector
+              <input type="text" name="stockSelector" />
+            </label>
+          </div>
+        </section>
+
+        <section>
+          <h2>Behavior</h2>
+          <div class="grid">
+            <label>
+              Badge text
+              <input type="text" name="badgeText" />
+            </label>
+            <label>
+              Auto refresh (minutes)
+              <input type="number" name="autoRefresh" min="1" />
+            </label>
+          </div>
+          <label class="inline">
+            <input type="checkbox" name="hideSold" /> Hide sold vehicles by default
+          </label>
+        </section>
+
+        <footer>
+          <button type="submit">Save</button>
+          <span id="status"></span>
+        </footer>
+      </form>
+    </main>
+    <script type="module" src="options.js"></script>
+  </body>
+</html>
