@@ -1,5 +1,7 @@
 // Common utilities shared by background, content, popup, and options scripts.
 
+const STOCK_LABEL_TOKENS = new Set(['STOCK', 'STK', 'SKU', 'СКЛАД', 'СТОК']);
+
 export const DEFAULT_SETTINGS = {
   dataSource: 'csv', // 'csv' or 'sheets'
   csvUrl: '',
@@ -40,6 +42,31 @@ export function normalizeVin(vin = '') {
 
 export function normalizeStock(stock = '') {
   return stock.trim().toUpperCase();
+}
+
+export function stripStockLabel(text = '') {
+  if (!text) return '';
+  const colonIndex = text.indexOf(':');
+  const hashIndex = text.indexOf('#');
+  let separatorIndex = -1;
+  if (colonIndex !== -1 && hashIndex !== -1) {
+    separatorIndex = Math.min(colonIndex, hashIndex);
+  } else {
+    separatorIndex = colonIndex !== -1 ? colonIndex : hashIndex;
+  }
+  if (separatorIndex !== -1) {
+    return text.slice(separatorIndex + 1).trimStart();
+  }
+  return text;
+}
+
+export function extractStockValue(text = '') {
+  const stripped = stripStockLabel(text);
+  if (!stripped) return '';
+  const matches = stripped.match(/[A-Z0-9-]{4,}/gi);
+  if (!matches) return '';
+  const candidate = matches.find((token) => !STOCK_LABEL_TOKENS.has(token.toUpperCase()));
+  return candidate ? normalizeStock(candidate) : '';
 }
 
 export function parseCsv(text) {
