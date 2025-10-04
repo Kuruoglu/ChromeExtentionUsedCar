@@ -38,8 +38,55 @@ export function normalizeVin(vin = '') {
     .replace(/[IOQ]/g, '');
 }
 
+const STOCK_LABEL_VARIANTS = ['STOCK', 'STK', 'SKU', 'Склад', 'Сток'];
+const STOCK_VALUE_REGEX = /\b[A-Z0-9-]{4,}\b/;
+
+function cleanPostLabel(text = '') {
+  return text.replace(/^[:#\s-]*/, '').trim();
+}
+
+function hasStockLabelPrefix(text = '') {
+  if (!text) return false;
+  const labelPattern = new RegExp(`^(?:${STOCK_LABEL_VARIANTS.join('|')})$`, 'i');
+  return labelPattern.test(text.trim());
+}
+
+function findStockNumber(text = '') {
+  const match = text.match(STOCK_VALUE_REGEX);
+  return match ? match[0] : '';
+}
+
 export function normalizeStock(stock = '') {
   return stock.trim().toUpperCase();
+}
+
+export function extractStockValue(text = '') {
+  if (!text) return '';
+
+  const labelPattern = new RegExp(`\\b(?:${STOCK_LABEL_VARIANTS.join('|')})\\b`, 'gi');
+  let labelMatch;
+  while ((labelMatch = labelPattern.exec(text))) {
+    const remainder = text.slice(labelMatch.index + labelMatch[0].length);
+    const candidate = findStockNumber(cleanPostLabel(remainder));
+    if (candidate) return candidate;
+  }
+
+  const trimmed = text.trim();
+  if (!trimmed) return '';
+
+  const separatorIndex = trimmed.search(/[:#]/);
+  if (separatorIndex !== -1) {
+    const before = trimmed.slice(0, separatorIndex).trim();
+    if (!before || hasStockLabelPrefix(before)) {
+      const candidate = findStockNumber(cleanPostLabel(trimmed.slice(separatorIndex + 1)));
+      if (candidate) return candidate;
+    }
+  } else {
+    const candidate = findStockNumber(trimmed);
+    if (candidate) return candidate;
+  }
+
+  return '';
 }
 
 export function parseCsv(text) {

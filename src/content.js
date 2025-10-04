@@ -7,6 +7,7 @@
     setHideSold,
     normalizeVin,
     normalizeStock,
+    extractStockValue,
     debounce
   } = await import(chrome.runtime.getURL('src/common.js'));
 
@@ -58,13 +59,13 @@
 
   function extractStock(card) {
     const fromSelector = extractTextBySelector(card, settings.selectors?.stock);
-    if (fromSelector) {
-      const normalized = normalizeStock(fromSelector);
+    const selectorValue = extractStockValue(fromSelector);
+    if (selectorValue) {
+      const normalized = normalizeStock(selectorValue);
       if (normalized) return normalized;
     }
-    const fallback = card.textContent || '';
-    const stockMatch = fallback.match(/\b(?:STOCK|STK|SKU|Склад|Сток)[:#\s]*([A-Z0-9-]{4,})\b/i);
-    return stockMatch ? normalizeStock(stockMatch[1]) : '';
+    const fallbackValue = extractStockValue(card.textContent || '');
+    return fallbackValue ? normalizeStock(fallbackValue) : '';
   }
 
   function toggleCardState(card, isSold) {
