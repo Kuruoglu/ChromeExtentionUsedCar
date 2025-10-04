@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Inventory Highlighter</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <main>
+      <h1>Inventory Highlighter</h1>
+      <button id="refresh">Refresh now</button>
+      <label class="switch">
+        <input type="checkbox" id="hideSold" />
+        <span>Hide sold vehicles</span>
+      </label>
+      <p class="meta">Last sync: <span id="lastSync">Loading…</span></p>
+      <p id="message" role="status"></p>
+    </main>
+    <script type="module" src="popup.js"></script>
+  </body>
+</html>
