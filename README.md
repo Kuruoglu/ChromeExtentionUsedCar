@@ -51,12 +51,12 @@ src/
 
 1. Enable the Google Sheets API in [Google Cloud Console](https://console.cloud.google.com/apis/library/sheets.googleapis.com).
 2. Create an API key (restrict it to the Sheets API if possible).
-3. Note your Spreadsheet ID (from the sheet URL) and the range containing your data, e.g. `Sheet1!A1:G500`.
+3. Note your Spreadsheet ID (from the sheet URL) and the range containing your data, e.g. `Sheet1!A1:G500` (include row 1 so the header titles are returned).
 4. In Options fill **Spreadsheet ID**, **Range**, and **API Key**. Leave CSV URL blank.
 
 ## Configuring Columns & Status Values
 
-At minimum your sheet must contain the Stock column (default header `Stock`) and a status column (default header `Comment`). If you also track VINs you can provide that column name, but it is optional. Match the column headers in Options. Add all possible sold-status strings (comma-separated) such as:
+At minimum your sheet must contain the Stock column (default header `Stock`) and a status column (default header `Comment`). If you also track VINs you can provide that column name, but it is optional. Match the column headers in Options. The refresh will fail fast with a clear error if any configured header is missing, so double-check that your CSV/Sheets range includes the header row. Add all possible sold-status strings (comma-separated) such as:
 
 ```
 sold

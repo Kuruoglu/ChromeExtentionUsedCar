@@ -5,24 +5,37 @@ import {
   createStatusMessage,
   getSettings,
   saveCache,
-  parseCsv
+  parseCsv,
+  getRequiredColumns
 } from './common.js';
 
 const ALARM_NAME = 'ih_refresh_alarm';
 
 chrome.runtime.onInstalled.addListener(async () => {
   await ensureAlarm();
-  await refreshData();
+  try {
+    await refreshData();
+  } catch (error) {
+    console.error('Inventory Highlighter initial refresh failed', error);
+  }
 });
 
 chrome.runtime.onStartup.addListener(async () => {
   await ensureAlarm();
-  await refreshData();
+  try {
+    await refreshData();
+  } catch (error) {
+    console.error('Inventory Highlighter startup refresh failed', error);
+  }
 });
 
 chrome.alarms.onAlarm.addListener(async (alarm) => {
   if (alarm.name === ALARM_NAME) {
-    await refreshData();
+    try {
+      await refreshData();
+    } catch (error) {
+      console.error('Inventory Highlighter scheduled refresh failed', error);
+    }
   }
 });
 
@@ -46,7 +59,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 chrome.storage.onChanged.addListener(async (changes, areaName) => {
   if (areaName === 'sync' && changes[STORAGE_KEYS.SETTINGS]) {
     await ensureAlarm();
-    await refreshData();
+    try {
+      await refreshData();
+    } catch (error) {
+      console.error('Inventory Highlighter refresh after settings change failed', error);
+    }
   }
 });
 
@@ -68,14 +85,16 @@ async function refreshData() {
   const { dataSource } = settings;
   try {
     const rows = await fetchRows(settings, dataSource);
+    assertColumnsPresent(rows, settings);
     const { vinSet, stockSet } = buildLookups(rows, settings);
     const lastSync = Date.now();
     await saveCache({ vins: vinSet, stocks: stockSet, lastSync });
     chrome.runtime.sendMessage({ type: 'ih_cache_updated', lastSync }).catch(() => {});
     return { lastSync, count: rows.length };
   } catch (error) {
+    const message = createStatusMessage(error);
     console.error('Inventory Highlighter refresh failed', error);
-    return { error: createStatusMessage(error) };
+    throw new Error(message);
   }
 }
 
@@ -112,8 +131,15 @@ async function fetchFromSheets(settings) {
     throw new Error(`Sheets API request failed: ${response.status} ${response.statusText}`);
   }
   const data = await response.json();
-  const [headers, ...rows] = data.values || [];
-  if (!headers) return [];
+  const [rawHeaders, ...rows] = data.values || [];
+  if (!rawHeaders) return [];
+  const headers = rawHeaders.map((header) => (header || '').trim());
+  const missing = missingColumns(headers, settings);
+  if (missing.length) {
+    throw new Error(
+      `Configured columns were not found in the selected range. Include the header row with: ${missing.join(', ')}`
+    );
+  }
   return rows.map((values) => {
     const row = {};
     headers.forEach((header, index) => {
@@ -121,4 +147,27 @@ async function fetchFromSheets(settings) {
     });
     return row;
   });
+}
+
+function missingColumns(headers, settings) {
+  const required = getRequiredColumns(settings);
+  const normalized = headers.map((header) => header.trim());
+  return required.filter((column) => !normalized.includes(column));
+}
+
+function assertColumnsPresent(rows, settings) {
+  const required = getRequiredColumns(settings);
+  if (!required.length) {
+    throw new Error('Configure at least Stock and Status column names before refreshing.');
+  }
+  const sampleRow = rows.find((row) => row && typeof row === 'object');
+  if (!sampleRow) {
+    return;
+  }
+  const missing = required.filter((column) => !Object.prototype.hasOwnProperty.call(sampleRow, column));
+  if (missing.length) {
+    throw new Error(
+      `Configured columns were not found in the data. Check your headers and range for: ${missing.join(', ')}`
+    );
+  }
 }

@@ -131,6 +131,24 @@ export function buildLookups(rows, { columns, soldValues }) {
   return { vinSet, stockSet };
 }
 
+export function getRequiredColumns(settings) {
+  const columns = settings?.columns || {};
+  const required = [];
+  const stock = (columns.stock || '').trim();
+  const status = (columns.status || '').trim();
+  const vin = (columns.vin || '').trim();
+  if (stock) {
+    required.push(stock);
+  }
+  if (status) {
+    required.push(status);
+  }
+  if (vin) {
+    required.push(vin);
+  }
+  return required;
+}
+
 export function createStatusMessage(error) {
   if (!error) return 'OK';
   if (error.message) return error.message;
