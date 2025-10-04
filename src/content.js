@@ -20,6 +20,10 @@
     applyToCards(document);
   }, 100);
 
+  function usesVinColumn() {
+    return Boolean((settings.columns?.vin || '').trim());
+  }
+
   function applyToCards(root) {
     const cardSelector = settings.selectors?.card || '';
     if (!cardSelector) return;
@@ -34,7 +38,7 @@
   }
 
   function annotateCard(card) {
-    const vin = extractVin(card);
+    const vin = usesVinColumn() ? extractVin(card) : '';
     const stock = extractStock(card);
     const isSold = Boolean((vin && vins.has(vin)) || (stock && stocks.has(stock)));
     toggleCardState(card, isSold);
@@ -48,6 +52,7 @@
   }
 
   function extractVin(card) {
+    if (!usesVinColumn()) return '';
     const fromSelector = extractTextBySelector(card, settings.selectors?.vin);
     const normalized = normalizeVin(fromSelector);
     if (normalized) return normalized;

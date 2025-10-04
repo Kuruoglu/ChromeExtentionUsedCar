@@ -5,18 +5,18 @@ export const DEFAULT_SETTINGS = {
   csvUrl: '',
   sheets: {
     spreadsheetId: '',
-    range: 'Sheet1!A:C',
+    range: 'Sheet1!A:G',
     apiKey: ''
   },
   columns: {
-    vin: 'VIN',
+    vin: '',
     stock: 'Stock',
-    status: 'Status'
+    status: 'Comment'
   },
-  soldValues: ['Sold', 'SOLD'],
+  soldValues: ['sold'],
   selectors: {
     card: '.vehicle-card, .inventory-card, .result-item, .vehicle',
-    vin: '[data-vehicle-vin], [data-vin], .vin',
+    vin: '',
     stock: '[data-vehicle-stock], [data-stock], .stock'
   },
   badgeText: 'Sold',
@@ -112,12 +112,20 @@ export function buildLookups(rows, { columns, soldValues }) {
   const soldStatuses = new Set(soldValues.map((s) => s.trim().toUpperCase()).filter(Boolean));
   const vinSet = new Set();
   const stockSet = new Set();
+  const vinKey = (columns?.vin || '').trim();
+  const stockKey = (columns?.stock || '').trim();
+  const statusKey = (columns?.status || '').trim();
+  if (!statusKey || !stockKey) {
+    return { vinSet, stockSet };
+  }
   rows.forEach((row) => {
-    const statusValue = (row[columns.status] || '').trim().toUpperCase();
+    const statusValue = (row[statusKey] || '').trim().toUpperCase();
     if (!soldStatuses.has(statusValue)) return;
-    const vin = normalizeVin(row[columns.vin] || '');
-    const stock = normalizeStock(row[columns.stock] || '');
-    if (vin) vinSet.add(vin);
+    if (vinKey) {
+      const vin = normalizeVin(row[vinKey] || '');
+      if (vin) vinSet.add(vin);
+    }
+    const stock = normalizeStock(row[stockKey] || '');
     if (stock) stockSet.add(stock);
   });
   return { vinSet, stockSet };

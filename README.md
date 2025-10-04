@@ -1,11 +1,11 @@
 # Inventory Highlighter — Chrome Extension
 
-Inventory Highlighter dims and labels sold vehicles directly on dealership inventory pages by cross-checking VIN and Stock numbers against a Google Sheet. It supports both published CSV feeds and the Google Sheets API, and works on infinite-scroll listings.
+Inventory Highlighter dims and labels sold vehicles directly on dealership inventory pages by cross-checking Stock numbers (and optionally VINs) against a Google Sheet. It supports both published CSV feeds and the Google Sheets API, and works on infinite-scroll listings.
 
 ## Features
 
 - 🔄 **Sheet sync** – Fetches data from either a published CSV URL or the Google Sheets API.
-- 🚗 **VIN / Stock matching** – Normalises VINs and stock numbers, then builds fast lookup sets.
+- 🚗 **Stock matching** – Normalises stock numbers (and VINs if configured), then builds fast lookup sets.
 - ✨ **Visual treatments** – Adds a `Sold` badge and dims matching vehicle cards. Optionally hides them entirely.
 - ♾️ **Infinite scroll aware** – MutationObserver and debounced rescans keep lazy-loaded cards accurate.
 - 🧰 **Customisable** – Options page lets you adjust column names, selectors, sold values, badge text, and refresh cadence.
@@ -51,15 +51,15 @@ src/
 
 1. Enable the Google Sheets API in [Google Cloud Console](https://console.cloud.google.com/apis/library/sheets.googleapis.com).
 2. Create an API key (restrict it to the Sheets API if possible).
-3. Note your Spreadsheet ID (from the sheet URL) and the range containing your data, e.g. `Sheet1!A1:C500`.
+3. Note your Spreadsheet ID (from the sheet URL) and the range containing your data, e.g. `Sheet1!A1:G500`.
 4. In Options fill **Spreadsheet ID**, **Range**, and **API Key**. Leave CSV URL blank.
 
 ## Configuring Columns & Status Values
 
-Your sheet must contain the VIN, Stock, and Status columns (case-insensitive). Match the column headers in Options. Add all possible sold-status strings (comma-separated) such as:
+At minimum your sheet must contain the Stock column (default header `Stock`) and a status column (default header `Comment`). If you also track VINs you can provide that column name, but it is optional. Match the column headers in Options. Add all possible sold-status strings (comma-separated) such as:
 
 ```
-Sold,SOLD,Delivered,Продано
+sold
 ```
 
 Rows whose status matches any of these values will be treated as sold.
@@ -69,8 +69,9 @@ Rows whose status matches any of these values will be treated as sold.
 By default the extension targets many Dealer Inspire–style layouts:
 
 - Card selector: `.vehicle-card, .inventory-card, .result-item, .vehicle`
-- VIN selector: `[data-vehicle-vin], [data-vin], .vin`
 - Stock selector: `[data-vehicle-stock], [data-stock], .stock`
+
+If you need VIN support, provide a VIN selector and column name in the Options page.
 
 If your site uses different markup, update the selectors in Options. Use CSS selectors that resolve relative to each vehicle card.
 
@@ -97,7 +98,7 @@ You can override these classes with custom CSS using a user style manager if des
 ## Testing Checklist
 
 - [ ] Options save and reload correctly.
-- [ ] CSV fetch works with a demo sheet (VIN `JM3KK1WY0R1100001`, Status `Sold`).
+- [ ] CSV fetch works with a demo sheet (Stock `STK-001`, Comment `sold`).
 - [ ] Sheets API fetch works with API credentials.
 - [ ] Visiting an inventory page dims/badges sold vehicles.
 - [ ] Lazy-loaded cards are annotated after scrolling.
